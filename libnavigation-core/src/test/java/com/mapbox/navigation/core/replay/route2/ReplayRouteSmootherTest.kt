@@ -1,7 +1,6 @@
 package com.mapbox.navigation.core.replay.route2
 
 import com.mapbox.geojson.LineString
-import com.mapbox.geojson.MultiPoint
 import com.mapbox.geojson.Point
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
@@ -60,7 +59,6 @@ class ReplayRouteSmootherTest {
         )
 
         val smoothedRoutes = routeSmoother.smoothRoute(coordinates, recommendedThresholdMeters)
-        println(LineString.fromLngLats(smoothedRoutes.map { it.point }).toJson())
 
         assertEquals(4, smoothedRoutes.size)
         assertEquals(-122.393181, smoothedRoutes[0].point.longitude())
@@ -97,7 +95,6 @@ class ReplayRouteSmootherTest {
         )
 
         val smoothedRoutes = routeSmoother.smoothRoute(coordinates, recommendedThresholdMeters)
-        println(LineString.fromLngLats(smoothedRoutes.map { it.point }).toJson())
 
         assertEquals(5, smoothedRoutes.size)
     }
@@ -115,7 +112,6 @@ class ReplayRouteSmootherTest {
         )
 
         val smoothedRoutes = routeSmoother.smoothRoute(coordinates, recommendedThresholdMeters)
-        println(MultiPoint.fromLngLats(smoothedRoutes.map { it.point }).toJson())
 
         assertEquals(5, smoothedRoutes.size)
     }

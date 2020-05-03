@@ -2,6 +2,7 @@ package com.mapbox.navigation.core.replay.route2
 
 import com.mapbox.geojson.Point
 import com.mapbox.navigation.core.replay.route2.ReplayRouteInterpolator.Companion.maxAcceleration
+import com.mapbox.navigation.core.replay.route2.ReplayRouteInterpolator.Companion.minAcceleration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -183,5 +184,25 @@ class ReplayRouteInterpolatorTest {
         speedProfile.forEach {
             assertTrue("${it.speedMps} < 20.0", it.speedMps < 20.0)
         }
+    }
+
+    @Test
+    fun `should slow down for upcoming turns`() {
+        val coordinates = listOf(
+            Point.fromLngLat(-122.445946, 37.737075),
+            Point.fromLngLat(-122.446511, 37.737594),
+            Point.fromLngLat(-122.447785, 37.738033),
+            Point.fromLngLat(-122.447999, 37.738063)
+        )
+
+        val speedProfile = routeInterpolator.createSpeedProfile(coordinates)
+
+        // All coordinates should be used for this speed profile
+        assertEquals(4, speedProfile.size)
+        // Assume -4.0 minAcceleration for this test
+        assertEquals(-4.0, minAcceleration, 0.001)
+        // To stop in 19 meters, you need to be going about 12mps
+        assertEquals(19.0, speedProfile[2].distance, 0.5)
+        assertEquals(12.0, speedProfile[2].speedMps, 0.5)
     }
 }

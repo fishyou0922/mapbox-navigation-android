@@ -37,7 +37,7 @@ internal class ReplayRouteInterpolator {
 
     /**
      * Given a list of coordinates on a route, detect sections of the route that have significant
-     * turns. Return a smaller list of replay locations that have calculated speeds.
+     * turns. Return a smaller list of locations that have calculated speeds.
      */
     fun createSpeedProfile(distinctPoints: List<Point>): List<ReplayRouteLocation> {
         val smoothLocations = routeSmoother.smoothRoute(distinctPoints, smoothRouteMeters)
@@ -59,9 +59,16 @@ internal class ReplayRouteInterpolator {
 
         // Reduce the speed if there is not enough distance to slow down
         for (i in smoothLocations.lastIndex downTo 1) {
-            val segmentDistance = smoothLocations[i - 1].distance
-            val maxSegmentSpeedMps = abs(segmentDistance / minAcceleration) + minSpeedMps
-            smoothLocations[i].speedMps = min(smoothLocations[i].speedMps, maxSegmentSpeedMps)
+            val to = smoothLocations[i].speedMps
+            val from = smoothLocations[i - 1].speedMps
+            val runway = smoothLocations[i - 1].distance
+            val isSlowingDown = (to - from) < 0.0
+            if (isSlowingDown) {
+                val runwayNeeded = distanceToSlowDown(from, 0.0, to)
+                if (runwayNeeded > runway) {
+                    smoothLocations[i - 1].speedMps = maxSpeedForDistance(to, runway)
+                }
+            }
         }
 
         return smoothLocations
@@ -150,5 +157,16 @@ internal class ReplayRouteInterpolator {
             currentVelocity = velocityNext
         }
         return distanceToStop
+    }
+
+    private fun maxSpeedForDistance(endSpeed: Double, distance: Double): Double {
+        var currentVelocity = endSpeed
+        var distanceToStop = -minAcceleration
+        do {
+            val velocityNext = currentVelocity - minAcceleration
+            distanceToStop += (velocityNext + currentVelocity) / 2.0
+            currentVelocity = velocityNext
+        } while (distanceToStop < distance)
+        return currentVelocity
     }
 }

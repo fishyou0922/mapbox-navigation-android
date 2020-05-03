@@ -5,8 +5,8 @@ import android.util.Log
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.LegAnnotation
-import com.mapbox.api.directions.v5.models.RouteLeg
 import com.mapbox.api.directions.v5.models.LegStep
+import com.mapbox.api.directions.v5.models.RouteLeg
 import com.mapbox.geojson.utils.PolylineUtils
 import com.mapbox.navigation.core.replay.history.ReplayEventBase
 import com.mapbox.navigation.core.replay.history.ReplayEventLocation
