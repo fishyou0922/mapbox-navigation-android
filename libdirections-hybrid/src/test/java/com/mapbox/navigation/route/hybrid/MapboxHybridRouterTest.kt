@@ -3,6 +3,7 @@ package com.mapbox.navigation.route.hybrid
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
+import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.geojson.Point
 import com.mapbox.navigation.base.internal.extensions.applyDefaultParams
@@ -18,6 +19,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -191,6 +193,34 @@ class MapboxHybridRouterTest {
         }
 
         verify { context.unregisterReceiver(any()) }
+    }
+
+    @Test
+    fun whenMultipleRoutesFetchedCallbacksHandledCorrectly() = runBlocking {
+        enableNetworkConnection()
+
+        val routerCallback1: Router.Callback = mockk(relaxUnitFun = true)
+        val routerCallback2: Router.Callback = mockk(relaxUnitFun = true)
+        val result1 = listOf<DirectionsRoute>(DirectionsRoute.builder().build())
+        val result2 = emptyList<DirectionsRoute>()
+
+        val job1 = launch {
+            hybridRouter.getRoute(routerOptions, routerCallback1)
+            delay(50)
+            internalCallback.captured.onResponse(result1)
+        }
+
+        val job2 = launch {
+            hybridRouter.getRoute(routerOptions, routerCallback2)
+            delay(100)
+            internalCallback.captured.onResponse(result2)
+        }
+
+        job1.join()
+        job2.join()
+
+        verify(exactly = 1) { routerCallback1.onResponse(result1) }
+        verify(exactly = 1) { routerCallback2.onResponse(result2) }
     }
 
     private suspend fun enableNetworkConnection() = networkConnected(true)
